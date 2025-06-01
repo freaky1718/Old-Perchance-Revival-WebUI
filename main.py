@@ -7,6 +7,7 @@ Perchance Revival - Recreating Old Perchance SD 1.5 Experience
 Basic Stable Diffusion 1.5 Gradio App with local/Hub models and CPU/GPU selection
 Added multi-image generation capability.
 
+NOTE: App still in early development
 """
 
 import gradio as gr
@@ -428,8 +429,8 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo: # Added a soft theme for better 
         f"""
         # Perchance Revival
         Recreating the experience of the old Perchance Stable Diffusion 1.5 generator.
-        This app features the models commonly used by Perchance. You can also add your own models to `./{MODELS_DIR}`.
-        _Note: 'hire.fix' size option currently generates at 1024x1024. Specific Perchance presets might need to be recreated by adjusting parameters._
+        Note: this app is currently in early development
+        Note: 'hire.fix' size option currently generates at 1024x1024
         """
     )
 
@@ -521,16 +522,15 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo: # Added a soft theme for better 
         f"""
         ---
         **Usage Notes:**
-        1. Edit `main.py` to add the specific Perchance Hub model IDs to the `DEFAULT_HUB_MODELS` list.
-        2. (Optional) Place *additional* local Diffusers-compatible SD 1.5 models into the `./{MODELS_DIR}` folder.
+        
         3. Select a model from the dropdown (the ones you listed or added locally).
         4. Choose your processing device (GPU recommended if available).
         5. Enter your positive and optional negative prompts.
-        6. Adjust advanced settings (Steps, CFG Scale, Scheduler, Size, Seed, Number of Images) to match desired Perchance parameters if not using the default.
+        6. Optional: Adjust advanced settings (Steps, CFG Scale, Scheduler, Size, Seed, Number of Images) to match desired Perchance parameters if not using the default.
         7. Click "Generate Image".
-        The first generation with a new model/device might take some time to load.
-        Generating multiple images increases VRAM and time requirements. Start with 1-2 images if you have limited VRAM.
-        If you have a compatible NVIDIA GPU and want faster generation, you'll need to upgrade PyTorch to the CUDA version *after* running setup.bat. See the instructions printed in the setup console.
+        8. Have fun!
+        The first generation with a new model/device might take some time to load as the model is initially downloaded from the hub to your local storage.
+        Generating multiple images increases VRAM and time requirements.
         """
     )
 
