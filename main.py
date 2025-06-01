@@ -7,7 +7,7 @@ Perchance Revival - Recreating Old Perchance SD 1.5 Experience
 Basic Stable Diffusion 1.5 Gradio App with local/Hub models and CPU/GPU selection
 Added multi-image generation capability.
 
-NOTE: App still in early development
+NOTE: App still in early development - UI will be adjusted to match Perchance presets
 """
 
 import gradio as gr
@@ -39,21 +39,22 @@ SCHEDULER_MAP = {
 }
 DEFAULT_SCHEDULER = "Euler" # Default scheduler on startup
 
-# --- Perchance Revival Specific: List the models used by old Perchance here ---
-# You should replace the examples below with the actual Hugging Face Hub IDs
-# of the models used by the old Perchance generator.
-# Format: "OrgName/ModelName" or "UserName/ModelName"
-DEFAULT_HUB_MODELS = [
-    "Yntec/RevAnimatedV2Rebirth",
-    "stablediffusionapi/realcartoon-anime-v11"
-    # Example: "CompVis/stable-diffusion-v1-5", # Add actual Perchance models here
-    # Example: "runwayml/stable-diffusion-v1-5", # Add actual Perchance models here
-    # ... add other Perchance specific models ...
-    # "Raxephion/Typhoon-SD1.5-V1", # Example - REMOVE or comment out if not a Perchance model
-    # "Yntec/RevAnimatedV2Rebirth", # Example - REMOVE or comment out if not a Perchance model
-    # "stablediffusionapi/realcartoon-anime-v11" # Example - REMOVE or comment out if not a Perchance model
-]
-# --------------------------------------------------------------------------
+# --- Perchance Revival Specific: Map Styles to Models ---
+# This dictionary defines the "Styles" shown in the UI dropdown
+# and maps them to the Hugging Face Hub ID or local path of the model to load.
+# Add more "Style Name": "Model ID/Path" entries here for models you want to feature with a style name
+STYLE_MODEL_MAP = {
+    "Drawn Anime": "Yntec/RevAnimatedV2Rebirth",
+    "Mix Anime": "stablediffusionapi/realcartoon-anime-v11",
+    # Add other style mappings here, e.g., "Realistic": "runwayml/stable-diffusion-v1-5",
+}
+
+# DEFAULT_HUB_MODELS list is now empty or used for other *non-styled* Hub models
+# if you want to list them by their raw Hub ID alongside styles.
+# For this specific request, we will rely only on STYLE_MODEL_MAP for featured models.
+DEFAULT_HUB_MODELS = [] # Keep empty as styles handle featured models
+
+# ------------------------------------------------------
 
 
 # --- Constants for UI / Generation ---
@@ -76,7 +77,7 @@ DEFAULT_DEVICE = "GPU" if "GPU" in AVAILABLE_DEVICES else "CPU"
 # --- Global state for the loaded pipeline ---
 # We'll load the pipeline once and keep it in memory
 current_pipeline = None
-current_model_id = None # Keep track of the currently loaded model identifier
+current_model_id_loaded = None # Keep track of the actual model ID loaded
 current_device_loaded = None # Keep track of the device the pipeline is currently on
 
 
@@ -98,13 +99,13 @@ def list_local_models(models_dir):
 
 
 # --- Image Generation Function ---
-# Added 'selected_device_str' and 'num_images' parameters
-def generate_image(model_identifier, selected_device_str, prompt, negative_prompt, steps, cfg_scale, scheduler_name, size, seed, num_images):
-    """Generates images using the selected model and parameters on the chosen device."""
-    global current_pipeline, current_model_id, current_device_loaded, SCHEDULER_MAP, MAX_SEED
+# 'model_input_name' will be the selected Style name or "Local: path"
+def generate_image(model_input_name, selected_device_str, prompt, negative_prompt, steps, cfg_scale, scheduler_name, size, seed, num_images):
+    """Generates images using the selected model (based on style/path) and parameters on the chosen device."""
+    global current_pipeline, current_model_id_loaded, current_device_loaded, SCHEDULER_MAP, MAX_SEED, STYLE_MODEL_MAP
 
-    if not model_identifier or model_identifier == "No models found":
-        raise gr.Error(f"No model selected or available. Please add Perchance Hub models to DEFAULT_HUB_MODELS or additional models to '{MODELS_DIR}'.")
+    if not model_input_name or model_input_name == "No models found":
+        raise gr.Error("No model/style selected or available. Please select a Style or add local models.")
     if not prompt:
         raise gr.Error("Please enter a prompt.")
 
@@ -122,7 +123,9 @@ def generate_image(model_identifier, selected_device_str, prompt, negative_promp
     # Determine dtype based on the actual device being used
     dtype_to_use = torch.float32 # Default
     if device_to_use == "cuda":
-        if torch.cuda.is_available() and torch.cuda.get_device_capability(0)[0] >= 7: # Check compute capability (7.0+ for good fp16)
+        # Check compute capability (7.0+ for good fp16 on Ampere/Turing+)
+        # Also add check for is_available just to be super safe before calling get_device_capability
+        if torch.cuda.is_available() and torch.cuda.get_device_capability(0)[0] >= 7:
              dtype_to_use = torch.float16
              print("GPU supports FP16, using torch.float16 for potential performance/memory savings.")
         else:
@@ -134,15 +137,33 @@ def generate_image(model_identifier, selected_device_str, prompt, negative_promp
 
     print(f"Attempting generation on device: {device_to_use}, using dtype: {dtype_to_use}")
 
-    # 1. Load Model if necessary
-    # Check if the requested model OR the device has changed
-    # Also check if dtype might need adjustment based on device (though handled before load)
-    # The current_device_loaded check is simplified - just string comparison is often fine
-    if current_pipeline is None or current_model_id != model_identifier or (current_device_loaded is not None and str(current_device_loaded) != device_to_use):
-        print(f"Loading model: {model_identifier} onto {device_to_use}...")
+    # --- 1. Determine the actual model ID/path from the selected input name ---
+    actual_model_id_to_load = None
+
+    if model_input_name in STYLE_MODEL_MAP:
+        actual_model_id_to_load = STYLE_MODEL_MAP[model_input_name]
+        print(f"Selected style '{model_input_name}' maps to model: {actual_model_id_to_load}")
+    elif model_input_name.startswith("Local: "):
+        # It's a local model selection with the "Local: " prefix
+        actual_model_id_to_load = model_input_name.replace("Local: ", "", 1) # Remove prefix
+        print(f"Selected local model path: {actual_model_id_to_load}")
+    else:
+        # Fallback: If somehow an input name isn't in the map or doesn't have the prefix,
+        # assume it's a raw ID/path (shouldn't happen with correct UI population)
+        actual_model_id_to_load = model_input_name
+        print(f"Selected identifier '{model_input_name}' not a style or local path format, attempting to load as raw ID/path...")
+
+    if not actual_model_id_to_load or actual_model_id_to_load == "No models found":
+         raise gr.Error("Invalid model selection. Could not determine which model to load.")
+
+
+    # --- 2. Load Model if necessary ---
+    # Check if the requested model ID/path OR the device has changed
+    if current_pipeline is None or current_model_id_loaded != actual_model_id_to_load or (current_device_loaded is not None and str(current_device_loaded) != device_to_use):
+        print(f"Loading model: {actual_model_id_to_load} onto {device_to_use}...")
         # Clear previous pipeline to potentially free memory *before* loading the new one
         if current_pipeline is not None:
-             print(f"Unloading previous model '{current_model_id}' from {current_device_loaded}...")
+             print(f"Unloading previous model '{current_model_id_loaded}' from {current_device_loaded}...")
              # Move pipeline to CPU before deleting if it was on GPU, might help with freeing VRAM
              if str(current_device_loaded) == "cuda":
                   try:
@@ -168,21 +189,21 @@ def generate_image(model_identifier, selected_device_str, prompt, negative_promp
 
         try:
             # Load the pipeline
-            # Check if the identifier looks like a local path or a Hub ID
-            # Simplistic check: does it contain '/'? Doesn't handle complex cases, but ok for simple local vs hub
-            is_local_path = os.path.isdir(model_identifier) # More robust check using os.path.isdir
+            # Determine if it's likely a local path by checking if it exists as a directory
+            is_local_path_check = os.path.isdir(actual_model_id_to_load)
 
-            if is_local_path:
-                 print(f"Attempting to load local model from: {model_identifier}")
+            if is_local_path_check:
+                 print(f"Attempting to load local model from: {actual_model_id_to_load}")
                  pipeline = StableDiffusionPipeline.from_pretrained(
-                     model_identifier,
+                     actual_model_id_to_load,
                      torch_dtype=dtype_to_use,
                      safety_checker=None, # Removed for simplicity/speed, use with caution
                  )
             else:
-                 print(f"Attempting to load Hub model: {model_identifier}")
+                 print(f"Attempting to load Hub model: {actual_model_id_to_load}")
+                 # Hugging Face Hub models are loaded by their ID
                  pipeline = StableDiffusionPipeline.from_pretrained(
-                     model_identifier,
+                     actual_model_id_to_load,
                      torch_dtype=dtype_to_use,
                      safety_checker=None, # Removed for simplicity/speed, use with caution
                  )
@@ -191,7 +212,7 @@ def generate_image(model_identifier, selected_device_str, prompt, negative_promp
             pipeline = pipeline.to(device_to_use) # Move to the selected device
 
             current_pipeline = pipeline
-            current_model_id = model_identifier
+            current_model_id_loaded = actual_model_id_to_load # Store the actual ID/path loaded
             current_device_loaded = torch.device(device_to_use)
 
             # Basic check for SD1.x architecture (cross_attention_dim = 768)
@@ -199,7 +220,7 @@ def generate_image(model_identifier, selected_device_str, prompt, negative_promp
             if unet_config and hasattr(unet_config, 'config') and hasattr(unet_config.config, 'cross_attention_dim'):
                  cross_attn_dim = unet_config.config.cross_attention_dim
                  if cross_attn_dim != 768:
-                     warning_msg = (f"Warning: Loaded model '{model_identifier}' might not be a standard SD 1.x model "
+                     warning_msg = (f"Warning: Loaded model '{actual_model_id_to_load}' might not be a standard SD 1.x model "
                                     f"(expected UNet cross_attention_dim 768, found {cross_attn_dim}). "
                                     "Results may be unexpected or generation might fail.")
                      print(warning_msg)
@@ -210,37 +231,38 @@ def generate_image(model_identifier, selected_device_str, prompt, negative_promp
                  print("Could not check UNet cross_attention_dim.")
 
 
-            print(f"Model '{model_identifier}' loaded successfully on {current_device_loaded} with dtype {dtype_to_use}.")
+            print(f"Model '{actual_model_id_to_load}' loaded successfully on {current_device_loaded} with dtype {dtype_to_use}.")
 
         except Exception as e:
             # Reset global state on load failure
             current_pipeline = None
-            current_model_id = None
+            current_model_id_loaded = None
             current_device_loaded = None
-            print(f"Error loading model '{model_identifier}': {e}")
+            print(f"Error loading model '{actual_model_id_to_load}': {e}")
             error_message_lower = str(e).lower()
             # Provide more specific error messages based on common exceptions
             if "cannot find requested files" in error_message_lower or "404 client error" in error_message_lower or "no such file or directory" in error_message_lower:
-                 raise gr.Error(f"Model '{model_identifier}' not found. Check name/path or internet connection. Error: {e}")
+                 raise gr.Error(f"Model '{actual_model_id_to_load}' not found. Check name/path, Hugging Face Hub ID spelling, or internet connection. Error: {e}")
             elif "checkpointsnotfounderror" in error_message_lower or "valueerror: could not find a valid model structure" in error_message_lower:
-                 raise gr.Error(f"No valid diffusers model at '{model_identifier}'. Ensure it's a diffusers format directory or a valid Hub ID. Error: {e}")
+                 raise gr.Error(f"No valid diffusers model at '{actual_model_id_to_load}'. Ensure it's a diffusers format directory or a valid Hub ID. Error: {e}")
             elif "out of memory" in error_message_lower:
-                 raise gr.Error(f"Out of Memory (OOM) loading model. Try a lighter model (e.g., pruned, or less VRAM-hungry) or select CPU. Error: {e}")
+                 raise gr.Error(f"Out of Memory (OOM) loading model '{actual_model_id_to_load}'. Try a lighter model (e.g., pruned, or less VRAM-hungry) or select CPU. Error: {e}")
             elif "cusolver64" in error_message_lower or "cuda driver version" in error_message_lower or "cuda error" in error_message_lower:
-                 raise gr.Error(f"CUDA/GPU Driver Error: {e}. Check drivers, PyTorch with CUDA installation, or select CPU.")
+                 raise gr.Error(f"CUDA/GPU Driver Error: {e} loading '{actual_model_id_to_load}'. Check drivers, PyTorch with CUDA installation, or select CPU.")
             elif "safetensors_rust.safetensorserror" in error_message_lower or "oserror: cannot load" in error_message_lower or "filenotfounderror" in error_message_lower:
-                 raise gr.Error(f"Model file error for '{model_identifier}': {e}. Files might be corrupt, incomplete, or the path is wrong.")
+                 raise gr.Error(f"Model file error for '{actual_model_id_to_load}': {e}. Files might be corrupt, incomplete, or the path is wrong.")
             elif "could not import" in error_message_lower or "module not found" in error_message_lower:
-                 raise gr.Error(f"Dependency error: {e}. Ensure all dependencies are installed (run setup.bat) and PyTorch is installed correctly for your device.")
+                 raise gr.Error(f"Dependency error: {e} during model loading. Ensure all dependencies are installed (run setup.bat) and PyTorch is installed correctly for your device.")
             else:
-                raise gr.Error(f"Failed to load model '{model_identifier}': {e}")
+                raise gr.Error(f"Failed to load model '{actual_model_id_to_load}': {e}")
 
     # Check if pipeline is successfully loaded before proceeding
     if current_pipeline is None:
-         raise gr.Error("Model failed to load. Cannot generate image.")
+         # This check should ideally be caught by the error handling above, but as a failsafe:
+         raise gr.Error(f"Model '{actual_model_id_to_load}' failed to load previously. Cannot generate image.")
 
 
-    # 2. Configure Scheduler
+    # 3. Configure Scheduler
     selected_scheduler_class = SCHEDULER_MAP.get(scheduler_name)
     if selected_scheduler_class is None:
          print(f"Warning: Unknown scheduler '{scheduler_name}'. Using default: {DEFAULT_SCHEDULER}.")
@@ -264,7 +286,7 @@ def generate_image(model_identifier, selected_device_str, prompt, negative_promp
              raise gr.Error(f"Failed to configure scheduler '{scheduler_name}' and fallback failed. Error: {fallback_e} (Original: {e})") # Include both errors
 
 
-    # 3. Parse Image Size
+    # 4. Parse Image Size
     width, height = 512, 512 # Default size
     if size.lower() == "hire.fix":
         width, height = 1024, 1024
@@ -290,12 +312,7 @@ def generate_image(model_identifier, selected_device_str, prompt, negative_promp
          gr.Warning(warning_msg_size)
 
 
-    # 4. Set Seed Generator
-    # Ensure generator is on the correct device if seed is provided
-    # When generating multiple images, diffusers uses the same seed for the whole batch,
-    # but applies a different noise initialization for each image in the batch unless
-    # you use a specific BatchedEulerDiscreteScheduler or manual noise generation.
-    # For simplicity here, we'll use a single generator instance for the batch.
+    # 5. Set Seed Generator
     generator = None
     # The generator device needs to match the pipeline device
     generator_device = current_pipeline.device if current_pipeline else torch.device(device_to_use)
@@ -324,10 +341,11 @@ def generate_image(model_identifier, selected_device_str, prompt, negative_promp
          pass # Keep the last calculated seed_int
 
 
-    # 5. Generate Images
-    # num_images_int is already defined and validated above
+    # 6. Generate Images
+    num_images_int = int(num_images) # Convert num_images slider value to int
 
-    print(f"Generating {num_images_int} image(s): Prompt='{prompt[:80]}{'...' if len(prompt) > 80 else ''}', NegPrompt='{negative_prompt[:80]}{'...' if len(negative_prompt) > 80 else ''}', Steps={int(steps)}, CFG={float(cfg_scale)}, Size={width}x{height}, Scheduler={scheduler_name}, Seed={seed_int if generator else 'System Random'}, Images={num_images_int}")
+    # Log which style/model was used for this generation request
+    print(f"Generating {num_images_int} image(s) for Style/Model '{model_input_name}': Prompt='{prompt[:80]}{'...' if len(prompt) > 80 else ''}', NegPrompt='{negative_prompt[:80]}{'...' if len(negative_prompt) > 80 else ''}', Steps={int(steps)}, CFG={float(cfg_scale)}, Size={width}x{height}, Scheduler={scheduler_name}, Seed={seed_int if generator else 'System Random'}, Images={num_images_int}")
     start_time = time.time()
 
     try:
@@ -363,9 +381,6 @@ def generate_image(model_identifier, selected_device_str, prompt, negative_promp
         generated_images_list = output.images
 
         # Determine the seed to return: the one we attempted to use, or -1 if generator creation failed
-        # Note: When num_images_per_prompt > 1, all images use the same *initial* seed/generator state,
-        # but the underlying noise is typically different unless a specific batching mechanism is used.
-        # Reporting the main seed_int is standard practice.
         actual_seed_used = seed_int # Return the seed we used or attempted to use
 
         # Return the list of images and the seed
@@ -399,8 +414,13 @@ def generate_image(model_identifier, selected_device_str, prompt, negative_promp
 
 # --- Gradio Interface ---
 local_models = list_local_models(MODELS_DIR)
-# Combine local *additional* models with the default Perchance Hub models you list
-model_choices = DEFAULT_HUB_MODELS + local_models
+# Combine the Style names from the map with the local model paths (prepended for clarity)
+styled_models = list(STYLE_MODEL_MAP.keys())
+additional_local_model_names = [f"Local: {path}" for path in local_models]
+
+# Combine styles and local models for the dropdown choices
+model_choices = styled_models + additional_local_model_names
+
 
 if not model_choices:
     initial_model_choices = ["No models found"]
@@ -408,18 +428,19 @@ if not model_choices:
     model_dropdown_interactive = False
     print(f"\n--- IMPORTANT ---")
     print(f"No models available!")
-    print(f"Please list the Perchance Hub models in DEFAULT_HUB_MODELS in main.py")
+    print(f"Please define Styles and their corresponding Hub models in STYLE_MODEL_MAP in main.py")
     print(f"or place additional local diffusers models in '{os.path.abspath(MODELS_DIR)}'.")
     print(f"-----------------\n")
 else:
     initial_model_choices = model_choices
-    # Set a reasonable default: prioritize Hub models if the list isn't empty, otherwise use the first local
-    if DEFAULT_HUB_MODELS:
-         initial_default_model = DEFAULT_HUB_MODELS[0]
-    elif local_models:
-         initial_default_model = local_models[0] # First local model
-    else: # Should not happen if model_choices is not empty, but fallback
-         initial_default_model = model_choices[0]
+    # Set default to the first style if available, otherwise the first local model
+    if styled_models:
+         initial_default_model = styled_models[0] # Default to the first defined style
+    elif additional_local_model_names:
+         initial_default_model = additional_local_model_names[0] # Default to the first local if no styles
+    else: # Should not happen if model_choices is not empty
+         initial_default_model = model_choices[0] # Fallback to first item
+
     model_dropdown_interactive = True
 
 scheduler_choices = list(SCHEDULER_MAP.keys())
@@ -429,21 +450,21 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo: # Added a soft theme for better 
         f"""
         # Perchance Revival
         Recreating the experience of the old Perchance Stable Diffusion generator.
-        Note: this app is currently in early development
-        Note: 'hire.fix' size option currently generates at 1024x1024
-        Have fun! 
+        Select a style below, enter your prompt, and generate!
+        Note: this app is currently in early development - UI will be adjusted to match Perchance presets.
+        Note: 'hire.fix' size option currently generates at 1024x1024.
+        Have fun!
         """
     )
 
     with gr.Row():
         with gr.Column(scale=2): # Give more space to controls
+            # Updated label to reflect 'Styles' and local models
             model_dropdown = gr.Dropdown(
                 choices=initial_model_choices,
                 value=initial_default_model,
-                label=f"Select Model (Featured Perchance Hub Models or Additional Local from ./{MODELS_DIR})",
+                label=f"Select Style / Model (Featured Styles or Additional Local from ./{MODELS_DIR})",
                 interactive=model_dropdown_interactive,
-                # Make model selection update available devices? Not strictly needed as device is selected separately
-                # but could be linked if specific models only work on certain devices (rare for SD1.5)
             )
             device_dropdown = gr.Dropdown(
                 choices=AVAILABLE_DEVICES,
@@ -498,11 +519,10 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo: # Added a soft theme for better 
 
 
     # Link button click to generation function
-    # The `api_name` parameter allows calling this function via API if app is deployed with --share or similar
     generate_button.click(
         fn=generate_image,
         inputs=[
-            model_dropdown,
+            model_dropdown, # This now passes the Style Name or "Local: path"
             device_dropdown,
             prompt_input,
             negative_prompt_input,
@@ -511,10 +531,9 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo: # Added a soft theme for better 
             scheduler_dropdown,
             size_dropdown,
             seed_input,
-            num_images_slider # <-- Add the new input here
+            num_images_slider
         ],
-        # Change output from output_image to output_gallery, and add actual_seed_output
-        outputs=[output_gallery, actual_seed_output], # <-- Change outputs here
+        outputs=[output_gallery, actual_seed_output],
         api_name="generate" # Optional: For API access
     )
 
@@ -523,14 +542,16 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo: # Added a soft theme for better 
         f"""
         ---
         **Usage Notes:**
-        
-        3. Select a model from the dropdown (the ones you listed or added locally).
+
+        1. The featured "Styles" are defined in `main.py` and map to specific Stable Diffusion 1.5 models.
+        2. You can add *additional* local Diffusers-compatible SD 1.5 models into the `./{MODELS_DIR}` folder; they will appear in the dropdown prefixed with "Local:".
+        3. Select a Style/Model from the dropdown.
         4. Choose your processing device (GPU recommended if available).
         5. Enter your positive and optional negative prompts.
-        6. Optional: Adjust advanced settings (Steps, CFG Scale, Scheduler, Size, Seed, Number of Images) to match desired Perchance parameters if not using the default.
+        6. Optional: Adjust advanced settings (Steps, CFG Scale, Scheduler, Size, Seed, Number of Images).
         7. Click "Generate Image".
         8. Have fun!
-        The first generation with a new model/device might take some time to load as the model is initially downloaded from the hub to your local storage.
+        The first generation with a new Style/Model might take some time to load as the model is initially downloaded from the hub to your local storage.
         Generating multiple images increases VRAM and time requirements.
         """
     )
@@ -546,12 +567,14 @@ if __name__ == "__main__":
     print(f"Default device selected by app: {DEFAULT_DEVICE}")
 
     if not model_choices:
-         print(f"\n!!! WARNING: No models available. The Gradio app will launch but cannot generate images. Please list Perchance Hub models in DEFAULT_HUB_MODELS in main.py or add additional local models to '{MODELS_DIR}'. !!!")
+         print(f"\n!!! WARNING: No models available. The Gradio app will launch but cannot generate images.")
+         print(f"Please define Styles and their corresponding Hub models in STYLE_MODEL_MAP in main.py")
+         print(f"or add additional local diffusers models to '{MODELS_DIR}'. !!!")
     else:
-         # Count featured vs local
-         num_featured = len(DEFAULT_HUB_MODELS)
+         num_styled = len(STYLE_MODEL_MAP)
          num_additional_local = len(local_models)
-         print(f"Found {num_featured} featured Hub model(s) and {num_additional_local} additional local model(s) in '{os.path.abspath(MODELS_DIR)}'.")
+         print(f"Defined {num_styled} featured style(s) mapping to Hub models.")
+         print(f"Found {num_additional_local} additional local model(s) in '{os.path.abspath(MODELS_DIR)}'.")
 
 
     # Optional: Hugging Face login if needed for gated models (requires uncommenting imports and adding login logic)
