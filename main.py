@@ -240,8 +240,24 @@ def generate_image(model_input_name, selected_device_str, prompt, negative_promp
             current_device_loaded = None
             print(f"Error loading model '{actual_model_id_to_load}': {e}")
             error_message_lower = str(e).lower()
-            # Provide more specific error messages based on common exceptions
-            if "cannot find requested files" in error_message_lower or "404 client error" in error_message_lower or "no such file or directory" in error_message_lower:
+
+            # --- Specific error handling for the PyTorch version vulnerability ---
+            if "require users to upgrade torch to at least v2.6" in error_message_lower or "vulnerability issue in `torch.load`" in error_message_lower:
+                 print("\n--- HINT: PyTorch version likely too old for this model/library version ---")
+                 print("The model uses a file format requiring a newer PyTorch.")
+                 print("Run setup.bat again or manually install PyTorch 2.6+ (if available) for your system.")
+                 print("See https://pytorch.org/get-started/locally/ for commands.")
+                 print("------------------------------------------------------------------------\n")
+                 raise gr.Error(
+                     f"Failed to load model '{actual_model_id_to_load}': Your installed PyTorch version is too old "
+                     f"for this model file format. You need PyTorch 2.6 or higher. "
+                     f"Run `setup.bat` again, or manually install an updated PyTorch version. "
+                     f"See instructions on the PyTorch website: https://pytorch.org/get-started/locally/. Error: {e}"
+                 )
+            # --- End specific error handling ---
+
+            # Provide more specific error messages based on common exceptions (existing checks)
+            elif "cannot find requested files" in error_message_lower or "404 client error" in error_message_lower or "no such file or directory" in error_message_lower:
                  raise gr.Error(f"Model '{actual_model_id_to_load}' not found. Check name/path, Hugging Face Hub ID spelling, or internet connection. Error: {e}")
             elif "checkpointsnotfounderror" in error_message_lower or "valueerror: could not find a valid model structure" in error_message_lower:
                  raise gr.Error(f"No valid diffusers model at '{actual_model_id_to_load}'. Ensure it's a diffusers format directory or a valid Hub ID. Error: {e}")
@@ -254,7 +270,8 @@ def generate_image(model_input_name, selected_device_str, prompt, negative_promp
             elif "could not import" in error_message_lower or "module not found" in error_message_lower:
                  raise gr.Error(f"Dependency error: {e} during model loading. Ensure all dependencies are installed (run setup.bat) and PyTorch is installed correctly for your device.")
             else:
-                raise gr.Error(f"Failed to load model '{actual_model_id_to_load}': {e}")
+                 # Generic catch-all for unknown errors
+                raise gr.Error(f"Failed to load model '{actual_model_id_to_load}': An unexpected error occurred. {e}")
 
     # Check if pipeline is successfully loaded before proceeding
     if current_pipeline is None:
@@ -345,7 +362,7 @@ def generate_image(model_input_name, selected_device_str, prompt, negative_promp
     num_images_int = int(num_images) # Convert num_images slider value to int
 
     # Log which style/model was used for this generation request
-    print(f"Generating {num_images_int} image(s) for Style/Model '{model_input_name}': Prompt='{prompt[:80]}{'...' if len(prompt) > 80 else ''}', NegPrompt='{negative_prompt[:80]}{'...' if len(negative_prompt) > 80 else ''}', Steps={int(steps)}, CFG={float(cfg_scale)}, Size={width}x{height}, Scheduler={scheduler_name}, Seed={seed_int if generator else 'System Random'}, Images={num_images_int}")
+    print(f"Generating {num_images_int} image(s) for Style/Model '{model_input_name}' (Actual Model: {actual_model_id_to_load}): Prompt='{prompt[:80]}{'...' if len(prompt) > 80 else ''}', NegPrompt='{negative_prompt[:80]}{'...' if len(negative_prompt) > 80 else ''}', Steps={int(steps)}, CFG={float(cfg_scale)}, Size={width}x{height}, Scheduler={scheduler_name}, Seed={seed_int if generator else 'System Random'}, Images={num_images_int}")
     start_time = time.time()
 
     try:
@@ -381,6 +398,9 @@ def generate_image(model_input_name, selected_device_str, prompt, negative_promp
         generated_images_list = output.images
 
         # Determine the seed to return: the one we attempted to use, or -1 if generator creation failed
+        # Note: When num_images_per_prompt > 1, all images use the same *initial* seed/generator state,
+        # but the underlying noise is typically different unless a specific batching mechanism is used.
+        # Reporting the main seed_int is standard practice.
         actual_seed_used = seed_int # Return the seed we used or attempted to use
 
         # Return the list of images and the seed
@@ -433,7 +453,7 @@ if not model_choices:
     print(f"-----------------\n")
 else:
     initial_model_choices = model_choices
-    # Set default to the first style if available, otherwise the first local model
+    # Set a reasonable default: prioritize the first style if available, otherwise the first local model
     if styled_models:
          initial_default_model = styled_models[0] # Default to the first defined style
     elif additional_local_model_names:
@@ -543,7 +563,7 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo: # Added a soft theme for better 
         ---
         **Usage Notes:**
 
-        1. The featured "Styles" are defined in `main.py` and map to specific Stable Diffusion 1.5 models.
+        1. The featured "Styles" are defined in `main.py` and map to specific Stable Diffusion 1.5 models hosted on Hugging Face.
         2. You can add *additional* local Diffusers-compatible SD 1.5 models into the `./{MODELS_DIR}` folder; they will appear in the dropdown prefixed with "Local:".
         3. Select a Style/Model from the dropdown.
         4. Choose your processing device (GPU recommended if available).
