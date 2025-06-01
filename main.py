@@ -149,7 +149,7 @@ def generate_image(model_input_name, selected_device_str, prompt, negative_promp
         print(f"Selected local model path: {actual_model_id_to_load}")
     else:
         # Fallback: If somehow an input name isn't in the map or doesn't have the prefix,
-        # assume it's a raw ID/path (shouldn't happen with correct UI population)
+        # assume it's a raw ID/path (should't happen with correct UI population)
         actual_model_id_to_load = model_input_name
         print(f"Selected identifier '{model_input_name}' not a style or local path format, attempting to load as raw ID/path...")
 
@@ -245,13 +245,14 @@ def generate_image(model_input_name, selected_device_str, prompt, negative_promp
             if "require users to upgrade torch to at least v2.6" in error_message_lower or "vulnerability issue in `torch.load`" in error_message_lower:
                  print("\n--- HINT: PyTorch version likely too old for this model/library version ---")
                  print("The model uses a file format requiring a newer PyTorch.")
-                 print("Run setup.bat again or manually install PyTorch 2.6+ (if available) for your system.")
-                 print("See https://pytorch.org/get-started/locally/ for commands.")
+                 print("You need PyTorch 2.6 or higher.")
+                 print("Visit https://pytorch.org/get-started/locally/ to find the exact command for your system and CUDA version.")
+                 print("You will need to manually run that command while the virtual environment (venv) is active.")
                  print("------------------------------------------------------------------------\n")
                  raise gr.Error(
                      f"Failed to load model '{actual_model_id_to_load}': Your installed PyTorch version is too old "
                      f"for this model file format. You need PyTorch 2.6 or higher. "
-                     f"Run `setup.bat` again, or manually install an updated PyTorch version. "
+                     f"Please manually install an updated PyTorch version. "
                      f"See instructions on the PyTorch website: https://pytorch.org/get-started/locally/. Error: {e}"
                  )
             # --- End specific error handling ---
@@ -524,9 +525,7 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo: # Added a soft theme for better 
 
             generate_button = gr.Button("✨ Generate Image ✨", variant="primary", scale=1)
 
-        # Change output from gr.Image to gr.Gallery
         with gr.Column(scale=3): # Give more space to output
-            # Changed from gr.Image
             output_gallery = gr.Gallery( # Changed component type
                 label="Generated Images", # Changed label
                 show_label=True, # Ensure label is shown
@@ -534,7 +533,6 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo: # Added a soft theme for better 
                 show_download_button=True,
                 interactive=False # Output is not interactive
             )
-             # Add a display for the actual seed used
             actual_seed_output = gr.Number(label="Actual Seed Used", precision=0, interactive=False)
 
 
@@ -573,6 +571,7 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo: # Added a soft theme for better 
         8. Have fun!
         The first generation with a new Style/Model might take some time to load as the model is initially downloaded from the hub to your local storage.
         Generating multiple images increases VRAM and time requirements.
+        If you encounter model loading errors mentioning PyTorch version 2.6+ (or similar vulnerability warnings), it means the PyTorch version installed by `setup.bat` was not new enough for that specific model. Please follow instructions at https://pytorch.org/get-started/locally/ to install PyTorch 2.6+ (if available for your system/CUDA version) manually while the virtual environment is active.
         """
     )
 
