@@ -428,9 +428,10 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo: # Added a soft theme for better 
     gr.Markdown(
         f"""
         # Perchance Revival
-        Recreating the experience of the old Perchance Stable Diffusion 1.5 generator.
+        Recreating the experience of the old Perchance Stable Diffusion generator.
         Note: this app is currently in early development
         Note: 'hire.fix' size option currently generates at 1024x1024
+        Have fun! 
         """
     )
 
