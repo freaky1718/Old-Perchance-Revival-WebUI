@@ -49,7 +49,7 @@ This project is designed for **Windows** users seeking a simple experience throu
 This is the recommended method for most Windows users.
 
 1.  **Download the project:**
-    *   Go to the GitHub repository page: `[Insert your GitHub URL here, e.g., https://github.com/YourUsername/Perchance-Revival]`
+    *   Go to the GitHub repository page: `[]`
     *   Click the green "Code" button.
     *   Click "Download ZIP".
 2.  **Extract the ZIP:** Extract the downloaded ZIP file to a location on your computer (e.g., your Documents folder or Desktop). This will likely create a folder named something like `Perchance-Revival-main` (or similar). Rename it if you prefer, for example, to `PerchanceRevival`.
