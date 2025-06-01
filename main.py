@@ -43,6 +43,8 @@ DEFAULT_SCHEDULER = "Euler" # Default scheduler on startup
 # of the models used by the old Perchance generator.
 # Format: "OrgName/ModelName" or "UserName/ModelName"
 DEFAULT_HUB_MODELS = [
+    "Yntec/RevAnimatedV2Rebirth",
+    "stablediffusionapi/realcartoon-anime-v11"
     # Example: "CompVis/stable-diffusion-v1-5", # Add actual Perchance models here
     # Example: "runwayml/stable-diffusion-v1-5", # Add actual Perchance models here
     # ... add other Perchance specific models ...
