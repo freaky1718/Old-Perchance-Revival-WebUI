@@ -1,3 +1,6 @@
+# 05/06/2025 - App still in early development...
+
+
 # Perchance Revival - Easy Local SD 1.5 Image Generation
 
 [![Python Version](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
