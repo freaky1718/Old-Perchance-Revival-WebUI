@@ -48,32 +48,29 @@ if %errorlevel% neq 0 (
 )
 echo Core dependencies installed successfully.
 
-:: --- Attempt to Install PyTorch CUDA version by default ---
+:: --- Attempt to Install PyTorch 2.6.0 CUDA version by default ---
 :: This assumes a compatible NVIDIA GPU and drivers are present.
 :: If this fails, the user might not have a GPU, compatible drivers, or the specified CUDA version.
 echo.
-echo Attempting to install PyTorch with CUDA support (recommended for NVIDIA GPUs)...
-echo This command installs the latest stable PyTorch version compatible with CUDA 12.1
+echo Attempting to install PyTorch version 2.6.0 with CUDA support (recommended for NVIDIA GPUs)...
+echo This command installs torch==2.6.0, torchvision==2.6.0, torchaudio==2.6.0
 echo from the official source (https://download.pytorch.org/whl/cu121).
-echo Note that PyTorch v2.6 or higher might be required for some models due to recent library updates.
-echo If the version installed here is too old, you may see model loading errors later.
-echo (See https://pytorch.org/get-started/locally/ for specific commands for your system)
 
 :: --- !!! IMPORTANT !!! ---
-:: This command installs the latest stable torch/torchvision/torchaudio compatible with CUDA 12.1.
-:: If you know you need PyTorch 2.6 specifically and this command doesn't provide it,
-:: you might need a command like: pip install torch==2.6.0 torchvision==2.6.0 torchaudio==2.6.0 --index-url https://download.pytorch.org/whl/cu121
-:: (Confirm actual version numbers and index on the PyTorch website!)
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+:: This command specifically targets PyTorch 2.6.0 compatible with CUDA 12.1.
+:: If 2.6.0 is not available for your exact system or you need a different CUDA version,
+:: this step may fail.
+:: (See https://pytorch.org/get-started/locally/ for specific commands for your system)
+pip install torch==2.6.0 torchvision==2.6.0 torchaudio==2.6.0 --index-url https://download.pytorch.org/whl/cu121
 :: -------------------------
 
 if %errorlevel% neq 0 (
     echo.
-    echo !!! IMPORTANT: Failed to install PyTorch CUDA version (using cu121 index) during setup !!!
+    echo !!! IMPORTANT: Failed to install PyTorch version 2.6.0 CUDA (using cu121 index) during setup !!!
     echo.
     echo This installation step failed. This usually means one of the following:
     echo 1. You do not have a compatible NVIDIA GPU or your drivers are too old for CUDA 12.1.
-    echo 2. You need a different CUDA version of PyTorch.
+    echo 2. PyTorch 2.6.0 is not available for your specific Python version or OS at the cu121 index.
     echo 3. An internet or other package conflict issue occurred during installation.
     echo.
     echo Error details from pip:
@@ -82,24 +79,17 @@ if %errorlevel% neq 0 (
     echo To resolve the setup installation failure:
     echo - Check your internet connection.
     echo - Ensure you have a compatible NVIDIA GPU and the correct drivers installed for CUDA 12.1.
-    echo - Visit https://pytorch.org/get-started/locally/ to find the *exact* command for your specific system (OS, Package Manager, CUDA version). You may need a different CUDA index or an older version of PyTorch if your hardware/drivers are older.
+    echo - Visit https://pytorch.org/get-started/locally/ to find the *exact* command for your specific system (OS, Package Manager, CUDA version, PyTorch version). You may need a different CUDA index or verify 2.6.0 is available.
     echo.
     echo If you proceed by manually installing PyTorch (either CUDA or CPU) while in the activated venv,
     echo use a command similar to those on the PyTorch website. For CPU-only (slower), use:
-    echo pip install --upgrade --force-reinstall torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+    echo pip install --upgrade --force-reinstall torch==2.6.0 torchvision==2.6.0 torchaudio==2.6.0 --index-url https://download.pytorch.org/whl/cpu
     echo.
     echo After successfully installing PyTorch manually or resolving the setup issue, you can try running the app with run.bat.
     goto deactivate_and_end # Still exit setup script on failure
 ) else (
     echo.
-    echo PyTorch CUDA version installed successfully using the recommended latest stable for CUDA 12.1.
-    echo.
-    echo NOTE: Some newer models or library versions require PyTorch v2.6+. If you encounter model
-    echo loading errors after running run.bat, especially those mentioning
-    echo "torch.load" or needing "version 2.6+", it means the PyTorch
-    echo version installed here was not new enough. In that case, you will need to manually
-    echo install PyTorch 2.6+ (if available for your system/CUDA version) by following
-    echo instructions at https://pytorch.org/get-started/locally/ while the virtual environment is active.
+    echo PyTorch version 2.6.0 with CUDA support installed successfully for CUDA 12.1 index.
     echo.
 )
 
