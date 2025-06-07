@@ -17,8 +17,6 @@ Generate images effortlessly and for free, directly on your own PC. This version
 ## Application Screenshot:
 ![Screenshot of the Perchance Revival UI](app-images/revival001.png)
 
-> ⚠️ **Early Development Notice**  
-> This app is still in **very early development** – as in, *started today* early. It can already generate images successfully, but expect bugs, missing polish, and future changes (including some big ones). It’s functional but **not production-ready yet**. Stability is good so far, but this is more of a preview than a final release.
 
 This project is primarily designed for **Windows** users, offering a straightforward setup with easy-to-use batch files. Manual setup options are also provided for other platforms or advanced users.
 
