@@ -46,6 +46,10 @@ DEFAULT_SCHEDULER = "Euler" # Default scheduler on startup
 STYLE_MODEL_MAP = {
     "Drawn Anime": "Yntec/RevAnimatedV2Rebirth",
     "Mix Anime": "stablediffusionapi/realcartoon-anime-v11",
+    "Stylized Realism V1": "Raxephion/Typhoon-SD15-V1",
+    "Stylized Realism V2": "Raxephion/Typhoon-SD15-V2",
+    "Realistic Humans": "stablediffusionapi/realistic-vision",
+    "Semi-Realistic": "stablediffusionapi/dreamshaper8"
     # Add other style mappings here, e.g., "Realistic": "runwayml/stable-diffusion-v1-5",
 }
 
