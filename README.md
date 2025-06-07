@@ -1,6 +1,7 @@
 # 07/06/2025 - Still in Early Dev!
 
-> 🛠️ **Status Update:** A week has passed since the initial commit, and the app is still in early development — mostly because I haven’t had a chance to work on it during the week. Progress will continue over the weekend. Functionality is there, but polish and features are still very much a work in progress.
+> ⚠️ **Early Development Notice**  
+> This app is still in **very early development**. It can already generate images successfully, but expect bugs, missing polish, and future changes (including some big ones). It’s functional but **not production-ready yet**. Stability is good so far, but this is more of an early preview than a final release.
 
 
 
