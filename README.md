@@ -13,6 +13,8 @@ Welcome to **Perchance Revival**! This is a user-friendly Gradio web application
 
 Generate images effortlessly and for free, directly on your own PC. This version is designed to **prioritize and utilize your NVIDIA GPU** for significantly faster generation if you have one, while still offering a CPU option for broader compatibility. The goal is to make local SD 1.5 generation as simple as possible, especially for those familiar with the old Perchance site.
 
+## Application Screenshot:
+![Screenshot of the Perchance Revival UI](app-images/revival001.png)
 
 > ⚠️ **Early Development Notice**  
 > This app is still in **very early development** – as in, *started today* early. It can already generate images successfully, but expect bugs, missing polish, and future changes (including some big ones). It’s functional but **not production-ready yet**. Stability is good so far, but this is more of a preview than a final release.
