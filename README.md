@@ -27,33 +27,31 @@ This project is primarily designed for **Windows** users, offering a straightfor
 
 ## ✨ Features
 
-*   **Focused on Perchance SD 1.5 Models & Presets:** Access the models and common generation parameters/presets popular on the old Perchance site directly within the app for a nostalgic experience. These models are downloaded and cached automatically from the Hugging Face Hub on first use.
-*   **Add Your Own Models:** Easily load *additional* Stable Diffusion 1.5 models (in `diffusers` format) from a local `./checkpoints` folder, alongside the featured Perchance models.
-*   **GPU Accelerated (Recommended) or CPU:**
-    *   Default setup **attempts GPU installation** for faster generation (requires compatible NVIDIA GPU and drivers).
-    *   Automatically falls back to CPU if GPU setup fails, or allows manual CPU-only installation (generation is much slower on CPU).
-*   **Comprehensive Generation Controls:**
-    *   **Positive & Negative Prompts:** Tell the AI what to include and what to avoid.
-    *   **Inference Steps:** Control the detail level (more steps = often more detail, but slower).
-    *   **CFG Scale:** Adjust how closely the image follows your prompt (higher = stricter adherence).
-    *   **Schedulers:** Experiment with different sampling methods (Euler, DPM++ 2M, DDPM, LMS).
-    *   **Image Sizes:** Standard SD1.5 resolutions, plus a "hire.fix" option (interpreted as 1024x1024).
-    *   **Seed Control:** Get reproducible results with a specific seed, or use -1 for random.
-*   **User-Friendly Interface:**
-    *   Clean and intuitive Gradio UI.
-    *   Organized controls with advanced settings in an accordion.
-    *   Direct image display with convenient download and share options.
-*   **Safety First (Note):** The built-in safety checker is **disabled** in this version to match the flexibility of the old Perchance generator. Please be mindful of the content you generate.
+- **Device Agnostic:**
+  - Run inference on your **CPU**. (inference time around 4:55 with 10th gen i5 — not bad for an oven).
+  - Leverage your **NVIDIA GPU** for significantly faster generation (Euler 30 steps = 8 secs with 6GB VRAM). CUDA magic required.
+- **Comprehensive Control:**
+  - **Positive & Negative Prompts:** Guide the AI with detailed descriptions of what you want (and don’t want).
+  - **Inference Steps:** Control the number of denoising steps, because 20 just doesn’t feel lucky enough sometimes.
+  - **CFG Scale:** Adjust how strongly the image should conform to your prompt — or not. Live a little.
+  - **Schedulers:** Experiment with different sampling algorithms (Euler, DPM++ 2M, DDPM, LMS) until you find your personal flavor of chaos.
+  - **Image Sizes:** Choose from standard SD1.5 resolutions, plus a "hire.fix" option (interpreted as 1024x1024 because that's what people usually mean anyway).
+  - **Seed Control:** Set a specific seed for reproducible results. Or use -1 and see what the universe decides.
+- **User-Friendly Interface:**
+  - Clean and intuitive Gradio UI.
+  - Organized controls with advanced settings tucked away neatly — like secrets.
+  - Direct image display with download and share options.
+- **Safety First (Note):** The built-in safety checker is **disabled** in this version to allow for maximum creative freedom. Use responsibly. (We see you.)
 
 ## 🚀 Prerequisites
-
-*   **Windows Operating System:** The provided batch files (`.bat`) are for Windows. For other operating systems, follow the manual setup steps below.
-*   **Python:** 3.8 or higher. Ensure Python is installed and added to your system's PATH. Download from [https://www.python.org/downloads/windows/](https://www.python.org/downloads/windows/).
-*   **Git:** (Required for manual setup and updating) For cloning the repository.
-*   **Hardware:**
-    *   A modern CPU is required.
-    *   For the default GPU setup to succeed: A compatible **NVIDIA GPU** with up-to-date drivers installed. At least 6-8GB VRAM is recommended for 512x512, more for larger sizes or multiple images.
-*   **Internet Connection:** Required for downloading models from Hugging Face Hub and for updates.
+- **Windows Operating System:** The provided batch files (`.bat`) are for Windows. For other operating systems, follow the manual setup steps below (warning: includes actual typing).
+- **Python:** 3.8 or higher. Ensure Python is installed and added to your system's PATH (usually an option during installation). You can download Python from [https://www.python.org/downloads/windows/](https://www.python.org/downloads/windows/).
+- **Git:** (Required for manual setup and updating) For cloning the repository.
+- **Hardware:**
+  - A modern CPU is required.
+  - For GPU acceleration (optional but highly recommended for speed), a compatible NVIDIA GPU with up-to-date CUDA drivers. At least 6–8GB VRAM is recommended for 512x512 generation, more for larger sizes.
+  - **Important:** The correct CUDA version for your drivers is critical. Use `nvidia-smi` in the command prompt to check your driver's compatible CUDA version. Or guess wildly — up to you.
+- **Internet Connection:** Required for downloading models from Hugging Face Hub and for updates. Sorry, it doesn't generate dreams offline (yet).
 
 ## 📦 Easy Setup (Windows - Download & Run)
 
@@ -64,46 +62,22 @@ This is the recommended and easiest method for most Windows users.
     *   Click the green "<> Code" button.
     *   Click "Download ZIP".
 2.  **Extract the ZIP:** Extract the downloaded ZIP file to a location on your computer (e.g., your Documents folder or Desktop). This will create a folder like `Old-Perchance-Revival-WebUI-main` (or similar). You can rename it if you prefer, for example, to `PerchanceRevival`.
-3.  **Run the Setup Script:**
-    *   Navigate into the extracted folder (e.g., `PerchanceRevival`).
-    *   Find the file named `setup.bat`.
-    *   **Double-click `setup.bat`** to run it.
-    *   A command prompt window will open. Follow the instructions in the window. This script will create a Python virtual environment (`venv`), install all necessary core dependencies from `requirements.txt`, and **attempt to install the GPU-accelerated version of PyTorch (CUDA) by default**.
-    *   **❗ IMPORTANT:** Read the output in the command prompt carefully during and after the script finishes.
-        *   If the GPU installation **succeeds**, the output will confirm this. You are ready to run the app.
-        *   If the GPU installation **fails** (e.g., no compatible NVIDIA GPU, incorrect drivers, or internet issues), the script will print specific error messages and **instructions on how to manually install the CPU-only version** of PyTorch as an alternative. Follow those instructions if the GPU install fails and you cannot resolve the underlying GPU/driver issue.
-4.  **Prepare Additional Local Models (Optional):**
-    *   Inside the extracted project folder (e.g., `PerchanceRevival`), create a directory named `checkpoints` (if `setup.bat` didn't create it).
-    *   Place any *additional* Stable Diffusion 1.5 models (in `diffusers` format – a folder containing files like `model_index.json`, `unet/`, `vae/`, etc.) that you want to use *beyond* the featured Perchance models inside the `checkpoints` directory. The app will detect and list these alongside the default options.
-        Example structure:
-        ```
-        PerchanceRevival/
-        ├── checkpoints/          <-- For YOUR additional models
-        │   ├── my-custom-model/
-        │   │   ├── model_index.json
-        │   │   ├── unet/
-        │   │   └── ...
-        │   └── another-local-model/
-        │       └── ...
-        ├── main.py              <-- Main application script
-        ├── requirements.txt     <-- Dependency list
-        ├── setup.bat            <-- Easy setup script
-        ├── run.bat              <-- Easy run script
-        ├── update.bat           <-- Easy update script
-        ├── images/              <-- Folder containing example image
-        │   └── ciphercore01.png <-- Example screenshot image file
-        └── ...                  <-- Other app files
-        ```
+3. **Choose Your Setup Script:**
+   - **For CPU Inference:** Run `setup-CPU.bat`. This will install the CPU version of PyTorch.
+   - **For GPU Inference:** Run `setup-GPU.bat`. This will attempt to install the CUDA-enabled version of PyTorch.
+4. **Run the Setup Script:**
+   - Navigate into the extracted folder.
+   - **Double-click either `setup-CPU.bat` or `setup-GPU.bat`** depending on whether you want CPU or GPU inference.
+   - A command prompt window will open. Follow the instructions in the window. This script will create a Python virtual environment (`venv`), install all necessary core dependencies, and install the appropriate version of PyTorch.
+   - **Important:** Read the output in the command prompt carefully during and after the script finishes.
+     - **If using `setup-GPU.bat` and the CUDA installation fails:** The script will provide instructions on how to troubleshoot the CUDA installation or how to install the CPU version of PyTorch as a fallback. There's no shame in going back to CPU. Okay, maybe a little.
+
 
 ## 🔄 Updating the Application (Windows - Easy Method)
-
-To get the latest code and dependency updates from this repository after using the easy setup:
-
-*   Navigate to the project folder (e.g., `PerchanceRevival`).
-*   Find the file named `update.bat`.
-*   **Double-click `update.bat`** to run it.
-*   A command prompt window will open and pull the latest changes from the GitHub repository and upgrade the Python packages in your virtual environment according to `requirements.txt`. It will **not** attempt to change your PyTorch installation (GPU vs CPU) unless specifically updated in `requirements.txt`.
-*   **Important:** This assumes you have not made local changes that conflict with the repository updates. If `git pull` fails, you may need to handle merge conflicts manually or discard local changes.
+To get the latest code, dependency updates and updated models from this repository after using the easy setup:
+- Navigate to the project folder.
+- Double-click `update.bat` to run it.
+- A command prompt window will open and pull the latest changes from the GitHub repository and upgrade the Python packages in your virtual environment. Congratulations, you are now slightly more modern.
 
 
 ## ▶️ Running the Application (Windows - Easy Method)
