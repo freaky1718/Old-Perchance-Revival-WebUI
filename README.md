@@ -22,11 +22,6 @@ Generate images effortlessly and for free, directly on your own PC. This version
 This project is primarily designed for **Windows** users, offering a straightforward setup with easy-to-use batch files. Manual setup options are also provided for other platforms or advanced users.
 
 
-## Application Screenshot:
-
-![Screenshot of the Perchance Revival Web UI](images/ciphercore01.png)
-*(Note: This screenshot shows the core layout. The 'Perchance Revival' version features specific model options and is focused on recreating that experience.)*
-
 ## ✨ Features
 
 - **Device Agnostic:**
