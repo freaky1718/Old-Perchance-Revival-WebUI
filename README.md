@@ -1,4 +1,7 @@
-# 05/06/2025 - App still in early development...
+# 07/06/2025 - Still in Early Dev!
+
+> 🛠️ **Status Update:** A week has passed since the initial commit, and the app is still in early development — mostly because I haven’t had a chance to work on it during the week. Progress will continue over the weekend. Functionality is there, but polish and features are still very much a work in progress.
+
 
 
 # Perchance Revival - Easy Local SD 1.5 Image Generation
