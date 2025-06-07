@@ -151,3 +151,8 @@ If you are not on Windows or prefer a manual command-line approach:
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](https://opensource.org/licenses/MIT) file for details.
+
+
+## Support:
+
+Feel free to buy me a coffee ;) https://ko-fi.com/raxephion
