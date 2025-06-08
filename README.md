@@ -1,3 +1,4 @@
+# 08/06/2025 - Issue: update.bat not functioning correctly. To update the update simply download the repo manually and extract, overwriting all in same directory
 # 07/06/2025 - Still in Early Dev!
 
 > ⚠️ **Early Development Notice**  
