@@ -3,7 +3,7 @@ echo Updating the Perchance Revival application...
 
 :: Define variables
 set VENV_DIR=venv
-set REPO_URL=https://github.com/Raxephion/perchance-revival-webui
+set REPO_URL=https://github.com/Raxephion/Old-Perchance-Revival-WebUI
 set ZIP_FILE=repo.zip
 set TEMP_DIR=temp_extraction
 
