@@ -1,78 +1,136 @@
 @echo off
 echo Updating the Perchance Revival application...
 
-:: Define the virtual environment directory name (must match setup.bat and run.bat)
+:: Define variables
 set VENV_DIR=venv
+set REPO_URL=https://github.com/Raxephion/perchance-revival-webui
+set ZIP_FILE=repo.zip
+set TEMP_DIR=temp_extraction
 
 :: Change directory to the script's location
 cd /d "%~dp0"
 
-:: Check if Git is available
+:: Cleanup old temp files if they exist
+if exist %ZIP_FILE% del %ZIP_FILE%
+if exist %TEMP_DIR% rmdir /s /q %TEMP_DIR%
+
+:: ==================================================================
+:: GIT-BASED UPDATE (Preferred Method)
+:: ==================================================================
 where git >nul 2>nul
+if %errorlevel% equ 0 (
+    echo Found Git. Using Git to update...
+    git pull
+    if %errorlevel% neq 0 (
+        echo.
+        echo ####################################################################
+        echo #  GIT PULL FAILED!                                                #
+        echo #  This is likely because you have made local changes to files.    #
+        echo #  To fix this, you can open a command prompt and run:             #
+        echo #  > git stash                                                     #
+        echo #  > git pull                                                      #
+        echo #  Or, you can delete the folder and re-download.                  #
+        echo ####################################################################
+        echo.
+        goto deactivate_and_end
+    )
+    echo Code updated successfully via Git.
+    goto update_dependencies
+)
+
+:: ==================================================================
+:: GIT-LESS UPDATE (Fallback Method)
+:: ==================================================================
+echo.
+echo Git not found. Attempting to download latest code directly...
+echo.
+
+:: --- DOWNLOAD ATTEMPT 1: Using curl (More Reliable) ---
+where curl >nul 2>nul
+if %errorlevel% equ 0 (
+    echo --- Attempting download with curl...
+    curl -L -o %ZIP_FILE% "%REPO_URL%/archive/refs/heads/main.zip"
+    if %errorlevel% equ 0 (
+        echo Download successful.
+        goto extract_zip
+    )
+    echo curl failed. It might be blocked. Trying PowerShell next...
+)
+
+:: --- DOWNLOAD ATTEMPT 2: Using PowerShell (with all compatibility fixes) ---
+echo --- Attempting download with PowerShell...
+powershell -Command "[Net.ServicePointManager]::SecurityProtocol = 'Tls12', 'Tls11', 'Tls'; $webClient = New-Object System.Net.WebClient; $webClient.Proxy = [System.Net.WebRequest]::GetSystemWebProxy(); $webClient.DownloadFile('%REPO_URL%/archive/refs/heads/main.zip', '%ZIP_FILE%')"
 if %errorlevel% neq 0 (
-    echo Error: Git not found. Please install Git and make sure it's added to your system's PATH.
-    echo You can download Git from https://git-scm.com/
+    echo.
+    echo ####################################################################
+    echo #  DOWNLOAD FAILED.                                                #
+    echo #  Both curl and PowerShell failed to download the update.         #
+    echo #  This is almost certainly caused by a FIREWALL or ANTIVIRUS.     #
+    echo #                                                                  #
+    echo #  ACTION REQUIRED:                                                #
+    echo #  1. Check your Antivirus (Avast, Norton, etc.) for quarantines.  #
+    echo #  2. Check Windows Defender Firewall to ensure it isn't blocking  #
+    echo #     cmd.exe, powershell.exe, or curl.exe.                         #
+    echo #  3. Try the MANUAL download method in the README.                #
+    echo ####################################################################
+    echo.
     goto end
 )
-echo Found Git.
+echo Download successful.
 
-:: Check if the virtual environment exists
+:extract_zip
+echo Extracting files...
+powershell -Command "Expand-Archive -Path '%ZIP_FILE%' -DestinationPath '%TEMP_DIR%' -Force"
+if %errorlevel% neq 0 (
+    echo Error: Failed to extract the ZIP file.
+    goto cleanup_and_end
+)
+
+echo Moving files to the correct directory...
+for /d %%d in (%TEMP_DIR%\*) do (
+    move /y "%%d\*" "." >nul
+)
+
+echo Cleaning up temporary files...
+del %ZIP_FILE% 2>nul
+rmdir /s /q %TEMP_DIR% 2>nul
+echo Successfully downloaded and extracted the latest code.
+
+:update_dependencies
 if not exist %VENV_DIR%\Scripts\activate.bat (
-    echo Error: Virtual environment "%VENV_DIR%" not found.
-    echo Please run setup.bat first to create the environment.
+    echo Error: Virtual environment not found. Please run setup.bat first.
     goto end
 )
 
-:: Activate the virtual environment
-echo Activating virtual environment...
-call %VENV_DIR%\Scripts\activate.bat
-if %errorlevel% neq 0 (
-    echo Error: Failed to activate virtual environment. Check virtual environment setup.
-    goto end
+if not defined VIRTUAL_ENV (
+    echo Activating virtual environment...
+    call %VENV_DIR%\Scripts\activate.bat
 )
-echo Virtual environment activated.
 
-:: Pull latest code from the repository
-echo Pulling latest code from GitHub...
-git pull
-if %errorlevel% neq 0 (
-    echo Error: Failed to pull latest code. This could be due to local changes, network issues, or Git configuration.
-    echo Please resolve the Git issue manually or discard local changes if necessary.
-    goto deactivate_and_end
-)
-echo Code updated successfully.
-
-:: Install/Upgrade dependencies from requirements.txt
-echo Installing/Upgrading dependencies from requirements.txt...
+echo Installing/Upgrading Python packages...
 pip install -r requirements.txt --upgrade
 if %errorlevel% neq 0 (
-    echo Error: Failed to install/upgrade dependencies. See the output above for details.
-    echo This could be due to network issues or conflicts between packages.
+    echo Error: Failed to install/upgrade dependencies.
     goto deactivate_and_end
 )
 echo Dependencies updated successfully.
 
 echo.
 echo --- UPDATE COMPLETE ---
-echo The application code and dependencies (from requirements.txt) are now up-to-date.
+echo The application is now up-to-date.
 echo.
-echo Important Note on PyTorch (GPU/CPU):
-echo This update does NOT change your current PyTorch installation (whether CPU or CUDA).
-echo If you manually installed the CUDA version and it was successful, it should still work.
-echo If you encounter issues with GPU acceleration after updating, or if you initially
-echo installed the CPU version and now want to try the GPU version, you will need to
-echo manually run the appropriate PyTorch installation command again while inside the
-echo activated virtual environment. Refer to the setup.bat instructions or the README
-echo for the specific commands.
-echo.
-
 
 goto end
 
+:cleanup_and_end
+del %ZIP_FILE% 2>nul
+rmdir /s /q %TEMP_DIR% 2>nul
+goto end
+
 :deactivate_and_end
-:: Deactivate the virtual environment before exiting on error
-echo Deactivating virtual environment...
-deactivate
+if defined VIRTUAL_ENV (
+    deactivate
+)
 echo.
 
 :end
