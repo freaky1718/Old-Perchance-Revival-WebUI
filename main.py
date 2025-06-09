@@ -309,7 +309,7 @@ def generate_image(model_input_name, selected_device_str, prompt, negative_promp
 
 
     # 4. Parse Image Size
-    width, height = 512, 768 # Default size
+    width, height = 512, 512 # Default size
     if size.lower() == "hire.fix":
         width, height = 1024, 1024
         print(f"Interpreting 'hire.fix' size as {width}x{height}")
@@ -512,7 +512,7 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo: # Added a soft theme for better 
                     )
                      size_dropdown = gr.Dropdown(
                         choices=SUPPORTED_SD15_SIZES,
-                        value="512x512",
+                        value="512x768",
                         label="Image Size"
                     )
                 with gr.Row(): # Group Seed and Images together
