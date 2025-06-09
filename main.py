@@ -309,7 +309,7 @@ def generate_image(model_input_name, selected_device_str, prompt, negative_promp
 
 
     # 4. Parse Image Size
-    width, height = 512, 512 # Default size
+    width, height = 512, 768 # Default size
     if size.lower() == "hire.fix":
         width, height = 1024, 1024
         print(f"Interpreting 'hire.fix' size as {width}x{height}")
