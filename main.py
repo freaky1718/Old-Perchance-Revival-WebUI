@@ -51,7 +51,8 @@ STYLE_MODEL_MAP = {
     "Realistic Humans": "stablediffusionapi/realistic-vision",
     "Semi-Realistic": "stablediffusionapi/dreamshaper8",
     "MidJourney Style": "prompthero/openjourney-v4",
-    "Ghibli Style": "danyloylo/sd1.5-ghibli-style"
+    "Ghibli Style": "danyloylo/sd1.5-ghibli-style",
+    "RealDream Style": "GraydientPlatformAPI/realdream11"
     # Add other style mappings here, e.g., "Realistic": "runwayml/stable-diffusion-v1-5",
 }
 
