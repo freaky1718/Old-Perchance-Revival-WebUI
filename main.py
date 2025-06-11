@@ -49,7 +49,9 @@ STYLE_MODEL_MAP = {
     "Stylized Realism V1": "Raxephion/Typhoon-SD15-V1",
     "Stylized Realism V2": "Raxephion/Typhoon-SD15-V2",
     "Realistic Humans": "stablediffusionapi/realistic-vision",
-    "Semi-Realistic": "stablediffusionapi/dreamshaper8"
+    "Semi-Realistic": "stablediffusionapi/dreamshaper8",
+    "MidJourney Style": "prompthero/openjourney-v4",
+    "Ghibli Style": "danyloylo/sd1.5-ghibli-style"
     # Add other style mappings here, e.g., "Realistic": "runwayml/stable-diffusion-v1-5",
 }
 
