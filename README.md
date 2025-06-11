@@ -6,10 +6,8 @@ Perchance Revival has been updated for better model management!
 *   **Fully Portable:** This change makes the entire application, along with its models, self-contained and easily portable.
 *   **No Global Cache Usage:** The app will no longer use your main Hugging Face user cache directory (e.g., `~/.cache/huggingface` or `C:\Users\<username>\.cache\huggingface`) for models it downloads.
 
-### 11/06/2025 - email model suggestions to: raxephion@yahoo.com (models you think might have been used by perchance and/or models you'd like to see in the app)
-### 11/06/2025 - Added 3 more models/presets for variety while perchance models are still being hunted down. Fixed update.bat - busy testing
-### 08/06/2025 - Issue: update.bat not functioning correctly. Busy fixing but it's one of those insanely crazy bugs. In the meanwhile to update the app download the repo manually and extract, overwriting all in same directory
-### 07/06/2025 - Still in Early Dev!
+#### 11/06/2025 - email model suggestions to: raxephion@yahoo.com (models you think might have been used by perchance and/or models you'd like to see in the app)
+#### 11/06/2025 - Added 3 more models/presets for variety while perchance models are still being hunted down. Fixed update.bat - busy testing
 
 > ⚠️ **Early Development Notice**  
 > This app is still in **very early development**. It can already generate images successfully, but expect bugs, missing polish, and future changes (including some big ones). It’s functional but **not production-ready yet**. Stability is good so far, but this is more of an early preview than a final release.
