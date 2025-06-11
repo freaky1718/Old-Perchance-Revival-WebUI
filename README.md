@@ -1,6 +1,10 @@
-**🚀 Model Caching Update for Perchance Revival! 🚀**
+**✨ Important Update: 11/06/2025 - Enhanced Portability & Local Model Caching! ✨**
 
-Perchance Revival now downloads all models (selected via "Styles" that point to Hugging Face Hub IDs) directly into the `checkpoints` folder within its own directory. This makes the app fully portable and means these models will no longer be downloaded into your global Hugging Face cache. This change makes the entire application, along with its featured Style models, self-contained and easily portable. Additional local models you place in `checkpoints` are, of course, already local.
+Perchance Revival has been updated for better model management!
+
+*   **Models Now Local:** All Hugging Face Hub models selected through this app will now be downloaded and cached into the `checkpoints` folder located directly within the Perchance Revival application directory.
+*   **Fully Portable:** This change makes the entire application, along with its models, self-contained and easily portable.
+*   **No Global Cache Usage:** The app will no longer use your main Hugging Face user cache directory (e.g., `~/.cache/huggingface` or `C:\Users\<username>\.cache\huggingface`) for models it downloads.
 
 ### 11/06/2025 - email model suggestions to: raxephion@yahoo.com (models you think might have been used by perchance and/or models you'd like to see in the app)
 ### 11/06/2025 - Added 3 more models/presets for variety while perchance models are still being hunted down. Fixed update.bat - busy testing
