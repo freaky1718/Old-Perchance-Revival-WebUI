@@ -1,6 +1,6 @@
-# 11/06/2025 - Added 3 more models/presets for variety while perchance models are still being hunted down. Fixed update.bat - busy testing
-# 08/06/2025 - Issue: update.bat not functioning correctly. Busy fixing but it's one of those insanely crazy bugs. In the meanwhile to update the app download the repo manually and extract, overwriting all in same directory
-# 07/06/2025 - Still in Early Dev!
+## 11/06/2025 - Added 3 more models/presets for variety while perchance models are still being hunted down. Fixed update.bat - busy testing
+## 08/06/2025 - Issue: update.bat not functioning correctly. Busy fixing but it's one of those insanely crazy bugs. In the meanwhile to update the app download the repo manually and extract, overwriting all in same directory
+## 07/06/2025 - Still in Early Dev!
 
 > ⚠️ **Early Development Notice**  
 > This app is still in **very early development**. It can already generate images successfully, but expect bugs, missing polish, and future changes (including some big ones). It’s functional but **not production-ready yet**. Stability is good so far, but this is more of an early preview than a final release.
