@@ -1,4 +1,4 @@
-### 11/06/2025 - email model suggestions to: raxephion@yahoo.com (models you think might have been used by perchance and/or models you'd like to see in the app
+### 11/06/2025 - email model suggestions to: raxephion@yahoo.com (models you think might have been used by perchance and/or models you'd like to see in the app)
 ### 11/06/2025 - Added 3 more models/presets for variety while perchance models are still being hunted down. Fixed update.bat - busy testing
 ### 08/06/2025 - Issue: update.bat not functioning correctly. Busy fixing but it's one of those insanely crazy bugs. In the meanwhile to update the app download the repo manually and extract, overwriting all in same directory
 ### 07/06/2025 - Still in Early Dev!
