@@ -457,17 +457,13 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo:
         ---
         **Usage Notes:**
 
-        1. The featured "Styles" are defined in `main.py` and map to specific Stable Diffusion 1.5 models. If a Style points to a Hugging Face Hub model, it will be downloaded to the `./{MODELS_DIR}` folder.
-        2. You can add *additional* local Diffusers-compatible SD 1.5 models into the `./{MODELS_DIR}` folder; they will appear in the dropdown prefixed with "Local:".
-        3. Select a Style/Model from the dropdown.
-        4. Choose your processing device (GPU recommended if available).
-        5. Enter your positive and optional negative prompts.
-        6. Optional: Adjust advanced settings (Steps, CFG Scale, Scheduler, Size, Seed, Number of Images).
-        7. Click "Generate Image".
-        8. Have fun!
-        The first generation with a new Style/Model might take some time to load as the model is initially downloaded from the hub to your local `{MODELS_DIR}` folder.
-        Generating multiple images increases VRAM and time requirements.
-        If you encounter model loading errors mentioning PyTorch version 2.6+ (or similar vulnerability warnings), it means the PyTorch version installed by `setup.bat` was not new enough for that specific model. Please follow instructions at https://pytorch.org/get-started/locally/ to install PyTorch 2.6+ (if available for your system/CUDA version) manually while the virtual environment is active.
+        1. Select a Style from the dropdown.
+
+        2. Enter your positive and optional negative prompts.
+        3. Optional: Adjust advanced settings (Steps, CFG Scale, Scheduler, Size, Seed, Number of Images).
+        4. Click "Generate Image".
+        5. Have fun!
+        6. The first generation with a new Style/Model might take some time to load as the model is initially downloaded from the hub to your local `{MODELS_DIR}` folder.
         """ # Uses MODELS_DIR
     )
 
