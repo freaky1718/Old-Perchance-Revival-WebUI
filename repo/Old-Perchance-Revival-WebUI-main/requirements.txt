@@ -1,0 +1,6 @@
+gradio
+diffusers
+Pillow # For PIL
+huggingface_hub
+transformers
+accelerate
